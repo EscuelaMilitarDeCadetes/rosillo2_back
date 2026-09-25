@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: rosillo_test
+          POSTGRES_USER: rosillo
+          POSTGRES_PASSWORD: rosillo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.local
+          DB_NAME: rosillo_test
+          DB_USER: rosillo
+          DB_PASSWORD: rosillo
+          DB_HOST: localhost
+          DB_PORT: 5432
+          SECRET_KEY: ci-test-secret-key
+        run: python manage.py test apps

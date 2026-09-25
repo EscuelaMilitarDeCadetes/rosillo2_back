@@ -1,0 +1,9 @@
+from .test_persona import PersonaServiceTests, PersonaValidatorTests
+from .test_grado_estudios import GradoEstudiosServiceTests
+from .test_facultad_escuela import FacultadEscuelaServiceTests
+from .test_grupo_investigacion import GrupoInvestigacionServiceTests
+from .test_mi_perfil_view import MiPerfilViewTests
+from .test_rol_grupo import RolGrupoServiceTests
+from .test_facultad_x_grupo import FacultadXGrupoServiceTests
+from .test_persona_x_grupo import PersonaXGrupoServiceTests
+from .test_gerente import GerenteServiceTests

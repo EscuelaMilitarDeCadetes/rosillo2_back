@@ -1,0 +1,23 @@
+[
+{
+  "model": "usuarios.usuario",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$p52xGlCMjVQSWJjDnNWeeU$yiL34QXY51RAwr2R6ICskEoZ38S0yD84ulwxhImxi4k=",
+    "last_login": "2026-06-11T19:47:46.054Z",
+    "is_superuser": true,
+    "username": "cristian.rodriguezc@esmic.edu.co",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-06-11T16:11:13.581Z",
+    "token_recuperacion": null,
+    "token_creado_en": null,
+    "email": "cristian.rodriguezc@esmic.edu.co",
+    "debe_cambiar_password": false,
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

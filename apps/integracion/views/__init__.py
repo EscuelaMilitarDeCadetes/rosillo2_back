@@ -1,0 +1,1 @@
+from .vinculacion_viewset import VinculacionViewSet

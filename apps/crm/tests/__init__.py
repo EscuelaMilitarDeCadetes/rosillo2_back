@@ -1,0 +1,6 @@
+from .base import CrmFixturesMixin
+from .factories import ProyectoFactory
+from .test_entidad_externa import EntidadExternaServiceTests
+from .test_indicador_impacto import IndicadorImpactoServiceTests
+from .test_interaccion import InteraccionServiceTests
+from .test_permissions import PermissionTests
