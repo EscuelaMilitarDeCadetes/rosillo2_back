@@ -18,7 +18,7 @@ class ProductoXProyectoService:
 
     # Tipo de documento fijo para toda entrega de producto: el usuario nunca
     # lo elige (a diferencia de participar_convocatoria, que sí deja elegir
-    # entre "Propuesta del proyecto"/"Carta de Compromiso"/"Documento de
+    # entre "Documento de Proyecto"/"Carta de Compromiso"/"Documento de
     # Alianza"). Se resuelve por nombre, no por pk fijo, para no depender del
     # orden en que se corrieron los seeds en cada entorno.
     NOMBRE_TIPO_DOCUMENTO_ENTREGABLE = "Entregables"
@@ -76,7 +76,7 @@ class ProductoXProyectoService:
         """Réplica de cargarDocumentoProducto: marca el producto como
         entregado y sube el archivo del entregable a través del punto de
         entrada único DocumentoFirmaService.crear_desde_archivo(), en la
-        misma carpeta ('proyectos') que la propuesta del proyecto y la carta
+        misma carpeta ('proyectos') que la Documento de Proyecto y la carta
         de compromiso. El tipo de documento es siempre 'Entregables' (no lo
         elige el usuario) y el documento se crea directamente en estado
         'FIRMADO' porque no pasa por ningún flujo de firmas dentro de la

@@ -85,6 +85,20 @@ class ConvocatoriaViewSet(viewsets.ViewSet):
         Sin paginación: normalmente hay una o dos abiertas."""
         convocatorias = ConvocatoriaService.listar_abiertas()
         return Response(self.serializer_class(convocatorias, many=True).data)
+
+    @staticmethod
+    def _parse_bool(valor):
+        """
+        Convierte un valor de query param (siempre string en HTTP) a bool
+        real, o None si el parámetro no fue enviado (para omitir el filtro).
+        NUNCA usar bool(str) directamente: bool("false") es True en Python,
+        porque cualquier string no vacío es "truthy".
+        """
+        if valor is None or valor == '':
+            return None
+        if isinstance(valor, bool):
+            return valor
+        return str(valor).strip().lower() in ("true", "1")
     
     @action(detail=True, methods=["post"], url_path="participar")
     def participar(self, request, pk=None):

@@ -30,7 +30,7 @@ class ParticiparConvocatoriaTests(InvestigacionFormalFixturesMixin, TestCase):
         # Sin seeds: los TipoDocumento que el orquestador resuelve por nombre
         # se crean aquí explícitamente, igual que cualquier otro fixture.
         self.tipo_doc_proyecto = TipoDocumento.objects.create(
-            nombre_documento="Propuesta del proyecto", grupo="proyecto",
+            nombre_documento="Documento de Proyecto", grupo="proyecto",
         )
         self.tipo_doc_carta = TipoDocumento.objects.create(
             nombre_documento="Carta de Compromiso", grupo="proyecto",

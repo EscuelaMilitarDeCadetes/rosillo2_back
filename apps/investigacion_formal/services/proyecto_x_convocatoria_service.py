@@ -213,7 +213,7 @@ class ProyectoXConvocatoriaService:
              igual que el bucle sobre tipoCalificacionRepositorio.findAll().
         """
         from apps.investigacion_formal.services.proyecto_service import ProyectoService
-        DOCUMENTOS_QUE_YA_VIENEN_FIRMADOS = {"Propuesta del proyecto", "Carta de Compromiso", "Documento de Alianza"}
+        DOCUMENTOS_QUE_YA_VIENEN_FIRMADOS = {"Documento de Proyecto", "Carta de Compromiso", "Documento de Alianza"}
         if not doc_proyecto:
             raise ValidationError(
                 {"doc_proyecto": "El documento del proyecto es obligatorio para participar en la convocatoria."}
@@ -241,7 +241,7 @@ class ProyectoXConvocatoriaService:
             ejecutor=ejecutor,
         )
         documentos_a_crear = [
-            ("Propuesta del proyecto", doc_proyecto),
+            ("Documento de Proyecto", doc_proyecto),
             ("Carta de Compromiso", doc_carta),
             ("Documento de Alianza", doc_alianza),
         ]
