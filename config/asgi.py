@@ -6,7 +6,10 @@ It exposes the ASGI callable as a module-level variable named ``application``.
 
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.local')
+os.environ.setdefault(
+    'DJANGO_SETTINGS_MODULE',
+    os.getenv('DJANGO_SETTINGS_MODULE', 'config.settings.local')
+)
 
 from django.core.asgi import get_asgi_application
 

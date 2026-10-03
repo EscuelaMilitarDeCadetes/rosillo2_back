@@ -4,7 +4,11 @@ from .base import *
 # El valor de DEBUG se leerá como un string 'True' o 'False', lo comparamos.
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 # Seguridad HTTPS
 SECURE_SSL_REDIRECT = False
