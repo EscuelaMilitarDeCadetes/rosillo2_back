@@ -34,6 +34,12 @@ ROLES_LECTURA_INVESTIGACION_FORMATIVA = [
 # Gestión administrativa/operativa del catálogo y de las asignaciones
 ROLES_ESCRITURA_GESTION = [EsFacultad, EsDecano, EsSoporte]
 
+# Alta (creación) de estudiantes y tutores en formativa: SOPORTE queda por
+# fuera por decisión funcional (sí puede consultarlos y editarlos). La
+# creación de usuarios estudiante/jurado/tutor (integracion/vinculacion)
+# ya era exclusiva de FACULTAD.
+ROLES_ALTA_ESTUDIANTE_TUTOR = [EsFacultad, EsDecano]
+
 # Creación operativa (asignar tutores/jurados a un proceso, programar eventos,
 # registrar evaluaciones): Facultad puede crear directamente — el gateo hacia
 # Decano ocurre DENTRO del service (ejecutor_es_facultad), no aquí.

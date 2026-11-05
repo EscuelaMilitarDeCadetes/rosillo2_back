@@ -1,6 +1,9 @@
 from apps.common.pagination import CommonPageNumberPagination
+from apps.common.ambito import investigacion_visible, SIN_AMBITO
 from apps.usuarios.permissions.es_cinterno import EsCInterno
 from apps.usuarios.permissions.es_soporte import EsSoporte
+from apps.usuarios.permissions.es_facultad import EsFacultad
+from apps.usuarios.permissions.tiene_ambito import TieneAmbitoFormativa
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,11 +24,20 @@ class PlantillaDocumentoViewSet(viewsets.ViewSet):
         if self.action in acciones_autoservicio:
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [EsSoporte | EsCInterno]
+            # FACULTAD gestiona plantillas sólo cuando entra por formativa.
+            permission_classes = [EsSoporte | EsCInterno | (EsFacultad & TieneAmbitoFormativa)]
         return [permission() for permission in permission_classes]
 
+    @staticmethod
+    def _ambito(request):
+        """Módulo de la sesión ('formal'/'formativa'), o None si el token no
+        trae ámbito (en ese caso no se filtra, como antes)."""
+        ambito = investigacion_visible(request)
+        return None if ambito == SIN_AMBITO else ambito
+
     def list(self, request):
-        plantillas = PlantillaDocumentoService.listar()
+        # Sólo las plantillas de tipos de documento del módulo de la sesión.
+        plantillas = PlantillaDocumentoService.listar(investigacion=self._ambito(request))
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(plantillas, request, view=self)
         serializer = self.serializer_class(page, many=True)
@@ -40,6 +52,7 @@ class PlantillaDocumentoViewSet(viewsets.ViewSet):
             tipo_documento_id=request.data.get("tipo_documento"),
             ruta_documento=request.data.get("ruta_documento"),
             ejecutor=request.user,
+            investigacion=self._ambito(request),
         )
         return Response(self.serializer_class(plantilla).data, status=status.HTTP_201_CREATED)
 
@@ -48,12 +61,15 @@ class PlantillaDocumentoViewSet(viewsets.ViewSet):
             plantilla_id=pk,
             ejecutor=request.user,
             ruta_documento=request.data.get("ruta_documento"),
+            investigacion=self._ambito(request),
         )
         return Response(self.serializer_class(plantilla).data)
 
     @action(detail=True, methods=["post"])
     def desactivar(self, request, pk=None):
-        plantilla = PlantillaDocumentoService.desactivar(pk, ejecutor=request.user)
+        plantilla = PlantillaDocumentoService.desactivar(
+            pk, ejecutor=request.user, investigacion=self._ambito(request)
+        )
         return Response(self.serializer_class(plantilla).data)
 
     @action(detail=False, methods=["get"], url_path="por-tipo-documento")

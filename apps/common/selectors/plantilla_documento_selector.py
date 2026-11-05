@@ -3,8 +3,11 @@ from apps.common.models import PlantillaDocumento
 
 class PlantillaDocumentoSelector:
     @staticmethod
-    def listar():
-        return PlantillaDocumento.objects.select_related('tipo_documento').filter(estado=True)
+    def listar(investigacion=None):
+        qs = PlantillaDocumento.objects.select_related('tipo_documento').filter(estado=True)
+        if investigacion is not None:
+            qs = qs.filter(tipo_documento__investigacion=investigacion)
+        return qs
 
     @staticmethod
     def obtener(plantilla_id):

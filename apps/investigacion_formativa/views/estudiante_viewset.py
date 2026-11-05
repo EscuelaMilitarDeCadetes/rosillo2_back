@@ -12,6 +12,7 @@ from apps.investigacion_formativa.permissions import (
     combinar,
     ROLES_LECTURA_INVESTIGACION_FORMATIVA,
     ROLES_ESCRITURA_GESTION,
+    ROLES_ALTA_ESTUDIANTE_TUTOR,
 )
 
 
@@ -20,7 +21,9 @@ class EstudianteViewSet(viewsets.ViewSet):
     pagination_class = InvestigacionFormativaPageNumberPagination
 
     def get_permissions(self):
-        if self.action in ["create", "update", "desactivar", "reactivar"]:
+        if self.action == "create":
+            return [combinar(ROLES_ALTA_ESTUDIANTE_TUTOR), TieneAmbitoFormativa()]
+        if self.action in ["update", "desactivar", "reactivar"]:
             return [combinar(ROLES_ESCRITURA_GESTION), TieneAmbitoFormativa()]
         else:  # list, retrieve, por_facultad, por_modalidad, por_modalidad_facultad
             return [combinar(ROLES_LECTURA_INVESTIGACION_FORMATIVA), TieneAmbitoFormativa()]

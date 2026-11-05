@@ -9,6 +9,7 @@ from apps.investigacion_formativa.serializers.tutor_serializer import TutorSeria
 from apps.investigacion_formativa.services.tutor_service import TutorService
 from apps.investigacion_formativa.permissions import (
     ROLES_LECTURA_INVESTIGACION_FORMATIVA, ROLES_ESCRITURA_GESTION, combinar,
+    ROLES_ALTA_ESTUDIANTE_TUTOR,
 )
 
 
@@ -17,7 +18,9 @@ class TutorViewSet(viewsets.ViewSet):
     pagination_class = InvestigacionFormativaPageNumberPagination
 
     def get_permissions(self):
-        if self.action in ["create", "update", "activar", "desactivar"]:
+        if self.action == "create":
+            return [combinar(ROLES_ALTA_ESTUDIANTE_TUTOR), TieneAmbitoFormativa()]
+        if self.action in ["update", "activar", "desactivar"]:
             return [combinar(ROLES_ESCRITURA_GESTION), TieneAmbitoFormativa()]
         else:  # list, retrieve, por_facultad
             return [combinar(ROLES_LECTURA_INVESTIGACION_FORMATIVA), TieneAmbitoFormativa()]

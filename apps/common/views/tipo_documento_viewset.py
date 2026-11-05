@@ -1,5 +1,5 @@
 from apps.common.pagination import CommonPageNumberPagination
-from apps.common.ambito import investigacion_visible
+from apps.common.ambito import investigacion_visible, SIN_AMBITO
 from apps.usuarios.permissions.es_soporte import EsSoporte
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -33,10 +33,17 @@ class TipoDocumentoViewSet(viewsets.ViewSet):
         return Response(self.serializer_class(tipo).data)
 
     def create(self, request):
+        # Si el frontend no indica el ámbito, el tipo de documento queda en
+        # el módulo con el que se inició sesión (formal o formativa). Antes
+        # quedaba en NULL y no aparecía en el listado de ningún módulo.
+        investigacion = request.data.get("investigacion")
+        if not investigacion:
+            ambito = investigacion_visible(request)
+            investigacion = ambito if ambito != SIN_AMBITO else None
         tipo = TipoDocumentoService.crear(
             nombre_documento=request.data.get("nombre_documento"),
             grupo=request.data.get("grupo"),
-            investigacion=request.data.get("investigacion"),
+            investigacion=investigacion,
             es_obligatorio=request.data.get("es_obligatorio", False),
             ejecutor=request.user
         )
