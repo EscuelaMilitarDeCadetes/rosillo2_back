@@ -32,3 +32,8 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+
+# Salvaguarda: en producción los correos SIEMPRE van a sus destinatarios
+# reales y por SMTP, aunque alguien deje estas variables puestas en el .env.
+EMAIL_REDIRIGIR_A = ''
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

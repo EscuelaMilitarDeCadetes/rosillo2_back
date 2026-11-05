@@ -7,9 +7,13 @@ from apps.common.selectors.tarea_selector import TareaSelector
 from apps.common.validators.notificacion_validator import NotificacionValidator
 from apps.common.services.historial_service import HistorialService
 
+import logging
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
+
+logger = logging.getLogger(__name__)
 
 class NotificacionService:
     @staticmethod
@@ -36,21 +40,38 @@ class NotificacionService:
             NotificacionService._enviar_email(notificacion)
 
         # --- empujar en vivo por WebSocket ---
-        channel_layer = get_channel_layer()
-        transaction.on_commit(lambda: async_to_sync(channel_layer.group_send)(
-            f"notificaciones_{usuario_destino_id}",
-            {
-                "type": "notificacion_nueva",
-                "data": {
-                    "id": notificacion.pk,
-                    "mensaje": notificacion.mensaje,
-                    "tipo": notificacion.tipo,
-                    "url_relacionada": notificacion.url_relacionada,
-                    "fecha_creacion": notificacion.fecha_creacion.isoformat(),
-                },
-            },
-        ))
+        transaction.on_commit(lambda: NotificacionService._empujar_en_vivo(notificacion))
         return notificacion
+
+    @staticmethod
+    def _empujar_en_vivo(notificacion):
+        """Envía la notificación por WebSocket. Si falla (p. ej. se llama
+        desde el hilo del programador de tareas diarias, o el canal no está
+        disponible), sólo se registra en el log: la notificación ya quedó
+        guardada y el frontend la recoge con su consulta periódica."""
+        try:
+            channel_layer = get_channel_layer()
+            if channel_layer is None:
+                return
+            async_to_sync(channel_layer.group_send)(
+                f"notificaciones_{notificacion.usuario_destino_id}",
+                {
+                    "type": "notificacion_nueva",
+                    "data": {
+                        "id": notificacion.pk,
+                        "mensaje": notificacion.mensaje,
+                        "tipo": notificacion.tipo,
+                        "url_relacionada": notificacion.url_relacionada,
+                        "fecha_creacion": notificacion.fecha_creacion.isoformat(),
+                    },
+                },
+            )
+        except Exception:
+            logger.warning(
+                f"[Notificacion] No se pudo enviar en vivo la notificación {notificacion.pk}; "
+                f"se verá en la siguiente consulta del frontend.",
+                exc_info=True,
+            )
 
     @staticmethod
     def _enviar_email(notificacion):

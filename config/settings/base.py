@@ -55,12 +55,21 @@ INSTALLED_APPS = [
     'apps.usuarios',
 ]
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')]},
-    },
-}
+# CHANNEL_LAYER_BACKEND (.env): 'memoria' (por defecto) o 'redis'.
+# 'memoria' no necesita Redis y sirve cuando el backend corre como UN solo
+# proceso (una sola consola con daphne). Con varios procesos/workers web
+# las notificaciones en vivo no llegarían entre ellos: ahí usar 'redis'.
+if os.getenv('CHANNEL_LAYER_BACKEND', 'memoria').strip().lower() != 'redis':
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')]},
+        },
+    }
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -217,7 +226,29 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # para limitar la tasa de peticiones (Throttling).
 
 # 5. Configuración de Correo Electrónico (Equivalente a spring.mail.*)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND (.env, opcional):
+#   - smtp (por defecto): envía de verdad por el servidor SMTP configurado.
+#   - archivo: no envía nada; guarda cada correo como archivo .log en
+#     EMAIL_FILE_PATH (por defecto <proyecto>/logs/correos). Sirve para
+#     probar los flujos sin cuenta de correo.
+#   - consola: imprime el correo en la consola donde corre el backend.
+_EMAIL_BACKENDS = {
+    'smtp': 'django.core.mail.backends.smtp.EmailBackend',
+    'archivo': 'django.core.mail.backends.filebased.EmailBackend',
+    'consola': 'django.core.mail.backends.console.EmailBackend',
+}
+EMAIL_BACKEND = _EMAIL_BACKENDS.get(
+    os.getenv('EMAIL_BACKEND', 'smtp').strip().lower(), _EMAIL_BACKENDS['smtp']
+)
+EMAIL_FILE_PATH = os.getenv('EMAIL_FILE_PATH', str(BASE_DIR / 'logs' / 'correos'))
+# Sin timeout, un SMTP que no responde puede dejar colgado el envío.
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '20'))
+# 'hilo' (por defecto: un solo proceso, sin Redis ni worker), 'celery'
+# (requiere Redis + celery worker) o 'sincrono'. Ver apps/common/services/email_service.py.
+EMAIL_MODO_ENVIO = os.getenv('EMAIL_MODO_ENVIO', 'hilo').strip().lower()
+# Sólo pruebas: si tiene valor, TODOS los correos van a esta(s)
+# dirección(es) (separadas por coma). Producción lo ignora.
+EMAIL_REDIRIGIR_A = os.getenv('EMAIL_REDIRIGIR_A', '')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.example.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
@@ -253,6 +284,15 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=2, minute=0),  # fuera de horario laboral
     },
 }
+
+# 5.2 Tareas diarias sin celery beat (ver apps/common/programador.py).
+# TAREAS_DIARIAS_MODO: 'proceso' (por defecto: las ejecuta el mismo
+# proceso de runserver/daphne), 'celery' (las ejecuta celery beat con
+# CELERY_BEAT_SCHEDULE) o 'desactivado'.
+TAREAS_DIARIAS_MODO = os.getenv('TAREAS_DIARIAS_MODO', 'proceso').strip().lower()
+HORA_RECORDATORIOS_TAREAS = os.getenv('HORA_RECORDATORIOS_TAREAS', '07:00')
+HORA_VERIFICACION_INTEGRIDAD = os.getenv('HORA_VERIFICACION_INTEGRIDAD', '02:00')
+RECORDATORIOS_DIAS_ANTICIPACION = int(os.getenv('RECORDATORIOS_DIAS_ANTICIPACION', '3'))
 
 # 6. Límite de tamaño de Archivos (Equivalente a spring.servlet.multipart.*)
 # El valor está en bytes. 100MB = 100 * 1024 * 1024 = 104857600 bytes.
@@ -298,6 +338,10 @@ if 'test' in sys.argv:
     REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
     REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['login'] = None
     AMBITO_CHECK_PERMISIVO_SIN_AUTH = True
+    # Los tests existentes verifican el correo de forma síncrona (Celery
+    # en modo eager de local.py, mail.outbox, patch de apps.common.tasks).
+    EMAIL_MODO_ENVIO = 'celery'
+    TAREAS_DIARIAS_MODO = 'desactivado'
 
 LOGGING = {
     'version': 1,

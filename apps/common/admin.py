@@ -165,3 +165,14 @@ class TipoDocumentoAdmin(admin.ModelAdmin):
     search_fields = ('nombre_documento',)
     list_filter = ('grupo',)
     ordering = ('nombre_documento',)
+
+# ======================================================
+# EJECUCION TAREA PROGRAMADA (programador interno)
+# ======================================================
+from .models import EjecucionTareaProgramada  # noqa: E402
+
+
+@admin.register(EjecucionTareaProgramada)
+class EjecucionTareaProgramadaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'ultima_fecha', 'ultima_ejecucion', 'ultimo_error', 'ultimo_resultado')
+    readonly_fields = ('ultima_ejecucion', 'ultimo_resultado', 'ultimo_error')
